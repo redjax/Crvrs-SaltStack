@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "..",
+			"name": "Git root"
+		},
+		{
+			"path": "../scripts/",
+			"name": "Repo Scripts"
+		},
+		{
+			"path": "../salt-ctrl/",
+			"name": "salt-ctrl App"
+		}
+	]
+}

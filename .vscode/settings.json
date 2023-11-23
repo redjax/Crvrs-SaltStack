@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./salt-ctrl/src",
+        "./salt-ctrl/src"
+    ]
+}

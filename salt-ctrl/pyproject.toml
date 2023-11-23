@@ -1,0 +1,24 @@
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "redjax", email = "no@no.com"},
+]
+dependencies = [
+    "jinja2>=3.1.2",
+    "loguru>=0.7.2",
+    "red-utils>=0.2.7",
+    "dynaconf>=3.2.4",
+    "msgpack>=1.0.7",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "pre-commit>=3.5.0",
+    "black>=23.11.0",
+    "ruff>=0.1.6",
+]
