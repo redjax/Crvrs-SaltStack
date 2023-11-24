@@ -1,39 +1,30 @@
+if __name__ == "__main__":
+    import sys
+
+    sys.path.append(".")
+
+from typing import Union
+from pathlib import Path
+
 from loguru import logger as log
-from dataclasses import dataclass, field
 
-from dynaconf import settings
-
-SALT_MASTER_ADDRESS: str = settings.SALT_MASTER.HOST
+from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
 
 
-@dataclass
-class SaltMaster:
-    name: str | None = field(default=settings.SALT_MASTER.NAME)
-    host: str | None = field(default=SALT_MASTER_ADDRESS)
-    os_type: str | None = field(default=settings.SALT_MASTER.OS_TYPE)
-    linux_distro: str | None = field(default=settings.SALT_MASTER.LINUX_DISTRO)
+inventory = SaltInventory()
+inventory.load_all()
 
+SALT_MASTER: SaltMaster = inventory.master
+SALT_MINIONS: list[SaltMinion] = inventory.minions
+SALT_MASTER_ADDRESS: str = inventory.master.host
 
-@dataclass
-class SaltMinion:
-    name: str | None = field(default=None)
-    master_addr: str | None = field(default=SALT_MASTER_ADDRESS)
-    host: str | None = field(default=None)
-    os_type: str | None = field(default=None)
-    linux_distro: str | None = field(default=None)
+if __name__ == "__main__":
+    log.debug(f"Master: {inventory.master}")
+    log.debug(f"Minions ({inventory.count_minions}): {inventory.minions}")
 
-
-SALT_MASTER: SaltMaster = SaltMaster()
-
-env_minions: list[dict[str, str]] = settings.SALT_MINIONS
-
-SALT_MINIONS: list[SaltMinion] = []
-
-for minion in env_minions:
-    _minion: SaltMinion = SaltMinion(
-        name=minion.name,
-        host=minion.host,
-        os_type=minion.os_type,
-        linux_distro=minion.linux_distro,
+    log.info(
+        f"Master node [{inventory.master.name}] reachable: {inventory.master.reachable()}"
     )
-    SALT_MINIONS.append(_minion)
+
+    for minion in inventory.minions:
+        log.info(f"Minion [{minion.name}] reachable: {minion.reachable()}")

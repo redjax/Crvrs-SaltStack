@@ -1,0 +1,48 @@
+{% raw -%}
+#!/bin/bash
+
+####################################################################################
+#                       SaltStack Minion Node Install Script                       #
+# -------------------------------------------------------------------------------- #
+#                                                                                  #
+# Use this script to bootstrap a SaltStack Minion node.                            #
+#                                                                                  #
+# Bootstrap install docs:                                                          #
+#   https://docs.saltproject.io/salt/install-guide/en/latest/topics/bootstrap.html #
+#                                                                                  #
+####################################################################################
+
+{%- endraw %}
+
+{% raw -%}
+## Detect distribution
+# DISTRO=$(lsb_release -is)
+# if [ -z $DISTRO ]; then
+#     DISTRO='unknown'
+# fi
+{%- endraw %}
+
+DISTRO="{{ master.distro|default("", true) }}"
+{% raw -%}
+if [ -z $DISTRO ]; then
+    DISTRO="unknown"
+fi
+
+echo "Installing Salt Master on [$DISTRO]"
+
+if [[ ! -f "install_salt.sh" ]]; then
+    curl -L https://bootstrap.saltstack.com -o install_salt.sh
+fi
+
+if [[ $DISTRO == "ubuntu" ]]; then
+    sudo sh install_salt.sh -P stable
+else
+    sudo sh install_salt.sh
+fi
+
+if [[ -f "install_salt.sh" ]]; then
+    echo "Removing ./install_salt.sh"
+    rm ./install_salt.sh
+fi
+
+{%- endraw %}

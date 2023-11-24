@@ -1,0 +1,20 @@
+[
+    {
+        "name": "minion1",
+        "host": "192.168.1.50",
+        "os_type": "linux",
+        "distro": "ubuntu"
+    },
+    {
+        "name": "minion2",
+        "host": "192.168.1.51",
+        "os_type": "linux",
+        "distro": "debian"
+    },
+    {
+        "name": "minion3",
+        "host": "192.168.1.52",
+        "os_type": "windows",
+        "distro": "win11"
+    }
+]

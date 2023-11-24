@@ -20,8 +20,10 @@
 # if [ -z $DISTRO ]; then
 #     DISTRO='unknown'
 # fi
+{%- endraw %}
 
-DISTRO="{{ master.linux_distro|default("", true) }}"
+DISTRO="{{ master.distro|default("", true) }}"
+{% raw -%}
 if [ -z $DISTRO ]; then
     DISTRO="unknown"
 fi
@@ -32,7 +34,7 @@ if [[ ! -f "install_salt.sh" ]]; then
     curl -L https://bootstrap.saltstack.com -o install_salt.sh
 fi
 
-if [[ $DISTRO == "Ubuntu" ]]; then
+if [[ $DISTRO == "ubuntu" ]]; then
     sudo sh install_salt.sh -M -P stable
 else
     sudo sh install_salt.sh -M
