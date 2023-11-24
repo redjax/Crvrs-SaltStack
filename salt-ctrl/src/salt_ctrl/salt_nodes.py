@@ -1,15 +1,16 @@
+from __future__ import annotations
+
 if __name__ == "__main__":
     import sys
 
     sys.path.append(".")
 
-from typing import Union
 from pathlib import Path
-
-from loguru import logger as log
+from typing import Union
 
 from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
 
+from loguru import logger as log
 
 inventory = SaltInventory()
 inventory.load_all()

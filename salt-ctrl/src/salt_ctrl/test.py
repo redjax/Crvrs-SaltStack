@@ -1,38 +1,31 @@
+from __future__ import annotations
+
 import sys
 
 sys.path.append(".")
 
-from typing import Union
 from pathlib import Path
+from typing import Union
 
-from loguru import logger as log
-from red_utils.ext.loguru_utils import (
-    init_logger,
-    LoguruSinkAppFile,
-    LoguruSinkErrFile,
-    LoguruSinkStdOut,
-)
-
-from salt_ctrl.core import AppSettings
 from salt_ctrl.constants import (
-    TEMPLATES_DIR,
-    TEMPLATE_OUTPUT_DIR,
     SALT_FW_PORTS,
     SCRIPT_TEMPLATES_DIR,
     SETUP_TEMPLATES_DIR,
+    TEMPLATE_OUTPUT_DIR,
+    TEMPLATES_DIR,
 )
-
+from salt_ctrl.core import AppSettings
+from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
 from salt_ctrl.salt_nodes import (
+    SALT_MASTER,
     SALT_MASTER_ADDRESS,
     SALT_MINIONS,
-    SALT_MASTER,
     inventory,
 )
-
 from salt_ctrl.utils.jinja_utils import (
-    load_template_dir,
-    load_template,
     get_loader_env,
+    load_template,
+    load_template_dir,
     render_template,
 )
 from salt_ctrl.utils.salt_inventory_utils import (
@@ -40,9 +33,15 @@ from salt_ctrl.utils.salt_inventory_utils import (
     render_master_scripts,
     render_minion_scripts,
 )
-from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
 
-from jinja2 import Template, Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
+from loguru import logger as log
+from red_utils.ext.loguru_utils import (
+    LoguruSinkAppFile,
+    LoguruSinkErrFile,
+    LoguruSinkStdOut,
+    init_logger,
+)
 
 app_settings: AppSettings = AppSettings()
 

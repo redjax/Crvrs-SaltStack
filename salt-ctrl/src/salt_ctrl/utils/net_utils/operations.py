@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import platform
 import subprocess
 
 from loguru import logger as log
-
 
 def ping(host: str = None):
     """Attempt to reach a specified host."""

@@ -1,24 +1,22 @@
 from __future__ import annotations
 
-from typing import Union, TYPE_CHECKING
 from pathlib import Path
+from typing import TYPE_CHECKING, Union
 
+from jinja2 import Environment, FileSystemLoader, Template
 from loguru import logger as log
-
-from jinja2 import Environment, Template, FileSystemLoader
 
 ## Import class definitions for editor type hinting, without fully importing the module
 if TYPE_CHECKING:
     from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
 
+from salt_ctrl.constants import SALT_FW_PORTS, TEMPLATE_OUTPUT_DIR
 from salt_ctrl.utils.jinja_utils import (
+    get_loader_env,
     load_template,
     load_template_dir,
     render_template,
-    get_loader_env,
 )
-from salt_ctrl.constants import SALT_FW_PORTS, TEMPLATE_OUTPUT_DIR
-
 
 def render_master_scripts(
     salt_master: SaltMaster = None,

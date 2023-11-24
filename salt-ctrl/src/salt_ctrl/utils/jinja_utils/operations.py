@@ -1,8 +1,9 @@
-from typing import Union
+from __future__ import annotations
+
 from pathlib import Path
+from typing import Union
 
-from jinja2 import FileSystemLoader, Environment, Template
-
+from jinja2 import Environment, FileSystemLoader, Template
 
 def load_template_dir(templates_dir: Union[Path, str] = None) -> FileSystemLoader:
     """Create loader for Jinja to open .j2 files."""
@@ -30,7 +31,6 @@ def get_loader_env(loader: FileExistsError = None) -> Environment:
 
     Environment is used to pass data & output a templated file.
     """
-
     if not loader:
         raise ValueError("Jinja FileSystemLoader object missing")
 

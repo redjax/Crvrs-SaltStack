@@ -1,15 +1,16 @@
-import json
-from typing import Union
-from pathlib import Path
+from __future__ import annotations
 
-from loguru import logger as log
-from pydantic import BaseModel, Field, field_validator, ValidationError
+import json
+
+from pathlib import Path
+from typing import Union
 
 from salt_ctrl.constants import INVENTORY_DIR
 from salt_ctrl.utils.net_utils import ping
 
+from loguru import logger as log
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from red_utils.ext.context_managers.cli_spinners import SimpleSpinner
-
 
 class SaltInventoryBase(BaseModel):
     inventory_dir: Path = Field(default=INVENTORY_DIR)
