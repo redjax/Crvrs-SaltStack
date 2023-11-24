@@ -2,6 +2,8 @@
 
 Repository for learning [SaltStack](https://saltproject.io). This repository is a mix of dev/learning modules, and live/production Salt resources.
 
+The included [`salt-ctrl`](./salt-ctrl/) is a Python utility for generating scripts to run on master/minion nodes. Over time it may grow to more complex operations like copying/executing the scripts on the remote.
+
 ## Notes
 
 ### Port requirements
