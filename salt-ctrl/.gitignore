@@ -2,3 +2,4 @@ minions.json
 master.json
 
 output/
+.serialize/

@@ -18,6 +18,7 @@ from salt_ctrl.utils.jinja_utils import (
     render_template,
 )
 
+
 def render_master_scripts(
     salt_master: SaltMaster = None,
     template_env: Environment = None,
@@ -34,6 +35,9 @@ def render_master_scripts(
         raise ValueError("Missing template loader environment")
     if output_dir is None:
         raise ValueError(f"Missing output file path/name")
+
+    serial: bytes = salt_master.serialize(to_disk=True, overwrite=True)
+    log.debug(f"Serialized Salt master ({type(serial)}): {serial}")
 
     if isinstance(output_dir, str):
         output_dir: Path = Path(output_dir)
@@ -96,6 +100,9 @@ def render_minion_scripts(
     )
 
     for minion in salt_minions:
+        serial: bytes = minion.serialize(to_disk=True, overwrite=True)
+        log.debug(f"Serialized Salt minion ({type(serial)}): {serial}")
+
         output_dir: Path = Path(f"{TEMPLATE_OUTPUT_DIR}/minions/{minion.name}")
 
         if not output_dir.exists():
