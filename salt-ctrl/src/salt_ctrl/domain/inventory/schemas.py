@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Union
 
-from salt_ctrl.constants import INVENTORY_DIR
+from salt_ctrl.constants import INVENTORY_DIR, PQ_DIR
 from salt_ctrl.utils.net_utils import ping
 
 from loguru import logger as log
@@ -19,6 +19,8 @@ from red_utils.ext.msgpack_utils import (
     default_serialize_dir,
 )
 from red_utils.std.hash_utils import get_hash_from_str
+
+import pandas as pd
 
 
 class SaltInventoryBase(BaseModel):
@@ -132,6 +134,60 @@ class SaltInventoryBase(BaseModel):
 
         return True
 
+    def master_df(self) -> pd.DataFrame:
+        """Compile a SaltMaster object to a DataFrame.
+
+        Converts SaltMaster to a Python dict, then creates a DataFrame from
+        this dict.
+        """
+        if self.master is None:
+            log.warning(f"Inventory Salt master is None. Loading Salt master.")
+            self.load_master()
+
+        log.debug(f"Compiling Salt master to DataFrame")
+
+        dump_master: dict = self.master.model_dump()
+        dump_master["salt_type"] = "master"
+        dump_master["serialized"] = self.master.serialize()
+
+        master_df: pd.DataFrame = pd.DataFrame.from_dict(dump_master, orient="index").T
+        # log.debug(f"Master DataFrame:\n{master_df}")
+
+        return master_df
+
+    def minions_df(self) -> pd.DataFrame:
+        """Compile a list of SaltMinion objects to a single DataFrame.
+
+        Function loops over SaltMinion objects in salt_minions, converting each to a Python
+        dict and appending "salt_type": "minion" to each object; a DataFrame is created from
+        this dict, then added to a temporary list.
+
+        Once looping through the list is complete, a single DataFrame is created by concatenating
+        each minion DataFrame.
+        """
+        if self.minions is None:
+            log.warning(f"Inventory Salt minions list is None. Loading Salt minions.")
+            self.load_minions()
+
+        log.debug(f"Compiling [{len(self.minions)}] Salt minion(s) to DataFrame")
+        minion_dfs: list[pd.DataFrame] = []
+
+        for minion in self.minions:
+            dump_minion: dict = minion.model_dump()
+            dump_minion["salt_type"] = "minion"
+            dump_minion["serialized"] = minion.serialize()
+            # log.debug(f"Minion dump ({type(dump_minion)}): {dump_minion}")
+
+            _df: pd.DataFrame = pd.DataFrame.from_dict(dump_minion, orient="index").T
+            # log.debug(f"Minion DataFrame:\n{_df}")
+            minion_dfs.append(_df)
+        log.debug(f"Compiled [{len(minion_dfs)}] minion DataFrame(s)")
+
+        minions_df: pd.DataFrame = pd.concat(minion_dfs)
+        log.debug(f"Compiled [{minions_df.shape[0]}] Salt minions to single DataFrame")
+
+        return minions_df
+
 
 class SaltInventory(SaltInventoryBase):
     @property
@@ -140,6 +196,50 @@ class SaltInventory(SaltInventoryBase):
             return 0
         else:
             return len(self.minions)
+
+    def df(self, to_disk: bool = False, overwrite: bool = False) -> pd.DataFrame:
+        """Compile Salt master & minions to a single DataFrame.
+
+        Optionally, save to a Parquet file by passing to_disk=True. If the
+        DataFrame has already been saved, this function will skip saving the
+        Parquet file unless overwrite=True is passed.
+        """
+        master_df: pd.DataFrame = self.master_df()
+        minions_df: pd.DataFrame = self.minions_df()
+
+        inventory_df: pd.DataFrame = pd.concat([master_df, minions_df])
+
+        if to_disk:
+            output_file: Path = Path(f"{PQ_DIR}/inventory.parquet")
+
+            if output_file.exists():
+                if not overwrite:
+                    log.warning(
+                        f"Output file already exists: {output_file}. Overwrite is False, skipping save"
+                    )
+                else:
+                    log.info(f"Saving DataFrame to {output_file}")
+
+                    try:
+                        inventory_df.to_parquet(path=output_file, engine="fastparquet")
+                    except Exception as exc:
+                        msg = Exception(
+                            f"Unhandled exception saving inventory DataFrame to file {output_file}. Details: {exc}"
+                        )
+                        log.error(msg)
+
+            else:
+                log.info(f"Saving DataFrame to {output_file}")
+
+                try:
+                    inventory_df.to_parquet(path=output_file, engine="fastparquet")
+                except Exception as exc:
+                    msg = Exception(
+                        f"Unhandled exception saving inventory DataFrame to file {output_file}. Details: {exc}"
+                    )
+                    log.error(msg)
+
+        return inventory_df
 
 
 class SaltInventoryObjectBase(BaseModel):

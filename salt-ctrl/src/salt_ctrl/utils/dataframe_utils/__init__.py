@@ -1,1 +1,1 @@
-from .operations import compile_inventory_df, compile_minions_df, compile_master_df
+from .operations import dict_to_df, list_dicts_to_df, concat_dfs

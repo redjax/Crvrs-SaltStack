@@ -23,7 +23,11 @@ from salt_ctrl.core.salt_nodes import (
     SALT_MINIONS,
     inventory,
 )
-from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
+from salt_ctrl.domain.inventory import (
+    SaltInventory,
+    SaltMaster,
+    SaltMinion,
+)
 from salt_ctrl.utils.jinja_utils import (
     get_loader_env,
     load_template,
@@ -35,11 +39,7 @@ from salt_ctrl.utils.salt_inventory_utils import (
     render_master_scripts,
     render_minion_scripts,
 )
-from salt_ctrl.utils.dataframe_utils import (
-    compile_minions_df,
-    compile_inventory_df,
-    compile_master_df,
-)
+from salt_ctrl.utils.dataframe_utils import list_dicts_to_df, dict_to_df, concat_dfs
 
 from jinja2 import Environment, FileSystemLoader, Template
 from loguru import logger as log
@@ -85,13 +85,8 @@ if __name__ == "__main__":
     )
     log.info(f"Render inventory success: {render_inventory}")
 
-    master_df = compile_master_df(salt_master=inventory.master)
-    log.debug(f"Master DataFrame:\n{master_df}")
-
-    minions_df = compile_minions_df(salt_minions=inventory.minions)
-    log.debug(f"Minions DataFrame:\n{minions_df}")
-
-    inventory_df = compile_inventory_df(
-        salt_inventory=inventory, to_disk=True, overwrite=True
+    # log.debug(f"Master DataFrame:\n{inventory.master_df()}")
+    # log.debug(f"Minions DataFrame:\n{inventory.minions_df()}")
+    log.debug(
+        f"Full inventory DataFrame:\n{inventory.df(to_disk=True, overwrite=True)}"
     )
-    log.debug(f"Full inventory DataFrame:\n{inventory_df}")
