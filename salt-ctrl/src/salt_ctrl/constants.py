@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+DATA_DIR: Path = Path(".data")
+PQ_DIR: Path = Path(f"{DATA_DIR}/parquet")
+
 TEMPLATES_DIR: Path = Path("templates")
 TEMPLATE_OUTPUT_DIR: Path = Path("output/templates")
 INVENTORY_DIR: Path = Path("inventory")

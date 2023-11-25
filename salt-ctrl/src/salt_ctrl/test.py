@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Union
 
 from salt_ctrl.constants import (
+    DATA_DIR,
+    PQ_DIR,
     SALT_FW_PORTS,
     SCRIPT_TEMPLATES_DIR,
     SETUP_TEMPLATES_DIR,
@@ -15,13 +17,13 @@ from salt_ctrl.constants import (
     TEMPLATES_DIR,
 )
 from salt_ctrl.core import AppSettings
-from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
-from salt_ctrl.salt_nodes import (
+from salt_ctrl.core.salt_nodes import (
     SALT_MASTER,
     SALT_MASTER_ADDRESS,
     SALT_MINIONS,
     inventory,
 )
+from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
 from salt_ctrl.utils.jinja_utils import (
     get_loader_env,
     load_template,
@@ -32,6 +34,11 @@ from salt_ctrl.utils.salt_inventory_utils import (
     render_inventory_scripts,
     render_master_scripts,
     render_minion_scripts,
+)
+from salt_ctrl.utils.dataframe_utils import (
+    compile_minions_df,
+    compile_inventory_df,
+    compile_master_df,
 )
 
 from jinja2 import Environment, FileSystemLoader, Template
@@ -46,6 +53,8 @@ from red_utils.ext.loguru_utils import (
 app_settings: AppSettings = AppSettings()
 
 ensure_dirs: list[Path] = [
+    DATA_DIR,
+    PQ_DIR,
     TEMPLATES_DIR,
     TEMPLATE_OUTPUT_DIR,
     SCRIPT_TEMPLATES_DIR,
@@ -75,3 +84,14 @@ if __name__ == "__main__":
         inventory=inventory, template_loader=LOADER
     )
     log.info(f"Render inventory success: {render_inventory}")
+
+    master_df = compile_master_df(salt_master=inventory.master)
+    log.debug(f"Master DataFrame:\n{master_df}")
+
+    minions_df = compile_minions_df(salt_minions=inventory.minions)
+    log.debug(f"Minions DataFrame:\n{minions_df}")
+
+    inventory_df = compile_inventory_df(
+        salt_inventory=inventory, to_disk=True, overwrite=True
+    )
+    log.debug(f"Full inventory DataFrame:\n{inventory_df}")
