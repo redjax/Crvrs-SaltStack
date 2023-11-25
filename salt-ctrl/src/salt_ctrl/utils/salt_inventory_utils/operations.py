@@ -10,7 +10,7 @@ from loguru import logger as log
 if TYPE_CHECKING:
     from salt_ctrl.domain.inventory import SaltInventory, SaltMaster, SaltMinion
 
-from salt_ctrl.constants import SALT_FW_PORTS, TEMPLATE_OUTPUT_DIR
+from salt_ctrl.constants import SALT_FW_PORTS, TEMPLATE_OUTPUT_DIR, SCRIPT_OUTPUT_DIR
 from salt_ctrl.utils.jinja_utils import (
     get_loader_env,
     load_template,
@@ -36,8 +36,8 @@ def render_master_scripts(
     if output_dir is None:
         raise ValueError(f"Missing output file path/name")
 
-    serial: bytes = salt_master.serialize(to_disk=True, overwrite=True)
-    log.debug(f"Serialized Salt master ({type(serial)}): {serial}")
+    # serial: bytes = salt_master.serialize(to_disk=True, overwrite=True)
+    # log.debug(f"Serialized Salt master ({type(serial)}): {serial}")
 
     if isinstance(output_dir, str):
         output_dir: Path = Path(output_dir)
@@ -46,22 +46,30 @@ def render_master_scripts(
         output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
+        log.info("Loading Salt master templates")
+
+        log.debug(f"Loading install_master template")
         install_master_templ = load_template(
             template_env=template_env,
             template_file="install_master.j2",
         )
 
+        log.debug(f"Loading allow_ports template")
         allow_ports_templ = load_template(
             template_env=template_env, template_file="allow_ports.j2"
         )
 
         if salt_master.os_type == "linux":
+            log.info(f"Rendering Salt master templates")
+
+            log.debug(f"Render install_master.j2 to {output_dir}/install_master.sh")
             render_template(
                 template=install_master_templ,
                 outfile=f"{output_dir}/install_master.sh",
                 data={"master": salt_master},
             )
 
+            log.debug(f"Render allow_ports.j2 to {output_dir}/allow_ports.sh")
             render_template(
                 template=allow_ports_templ,
                 outfile=f"{output_dir}/allow_ports.sh",
@@ -100,15 +108,19 @@ def render_minion_scripts(
     )
 
     for minion in salt_minions:
-        serial: bytes = minion.serialize(to_disk=True, overwrite=True)
-        log.debug(f"Serialized Salt minion ({type(serial)}): {serial}")
+        # serial: bytes = minion.serialize(to_disk=True, overwrite=True)
+        # log.debug(f"Serialized Salt minion ({type(serial)}): {serial}")
 
-        output_dir: Path = Path(f"{TEMPLATE_OUTPUT_DIR}/minions/{minion.name}")
+        log.info(f"Rendering script templates for Salt minion {minion.name}")
+        output_dir: Path = Path(f"{SCRIPT_OUTPUT_DIR}/minions/{minion.name}")
 
         if not output_dir.exists():
             output_dir.mkdir(parents=True, exist_ok=True)
 
         try:
+            log.debug(
+                f"Load install_minion.j2 and render to {output_dir}/install_minion.sh"
+            )
             install_minion_templ = load_template(
                 template_env=template_env, template_file="install_minion.j2"
             )
@@ -118,6 +130,7 @@ def render_minion_scripts(
                 data={"master": salt_master},
             )
 
+            log.debug(f"Load allow_ports.j2 and render to {output_dir}/allow_ports.sh")
             render_template(
                 template=allow_ports_templ,
                 outfile=f"{output_dir}/allow_ports.sh",
@@ -144,10 +157,11 @@ def render_inventory_scripts(
     MINIONS: list[SaltMinion] = inventory.minions
 
     try:
+        log.info(f"Rendering Salt master scripts")
         render_master_scripts(
             salt_master=MASTER,
             template_env=LOADER_ENV,
-            output_dir=f"{TEMPLATE_OUTPUT_DIR}/masters/{MASTER.name}",
+            output_dir=f"{SCRIPT_OUTPUT_DIR}/masters/{MASTER.name}",
         )
     except Exception as exc:
         msg = Exception(f"Unhandled exception rendering master scripts. Details: {exc}")
@@ -156,6 +170,7 @@ def render_inventory_scripts(
         return False
 
     try:
+        log.info(f"Rendering Salt minion scripts")
         render_minion_scripts(
             salt_master=MASTER, salt_minions=MINIONS, template_env=LOADER_ENV
         )
